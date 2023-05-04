@@ -1,13 +1,14 @@
-import { StatusBar } from "expo-status-bar";
+import "./src/lib/dayjs";
 import {
-  useFonts,
   Inter_400Regular,
   Inter_600SemiBold,
   Inter_700Bold,
   Inter_800ExtraBold,
+  useFonts,
 } from "@expo-google-fonts/inter";
-import { Home } from "./src/screens/Home";
+import { StatusBar } from "expo-status-bar";
 import { Loading } from "./src/components/Loading";
+import { Routes } from "./src/routes";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -23,7 +24,7 @@ export default function App() {
 
   return (
     <>
-      <Home />
+      <Routes />
       <StatusBar style="light" backgroundColor="transparent" translucent />
     </>
   );
