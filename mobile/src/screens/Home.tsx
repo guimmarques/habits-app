@@ -1,16 +1,49 @@
-import { Text, View, ScrollView } from "react-native";
+import { Text, View, ScrollView, Alert } from "react-native";
 import { Header } from "../components/Header";
 import { DAY_SIZE, HabitDay } from "../components/HabitDay";
 import { generateDatesFromYearBeginnig } from "../utils/generate-dates-from-year-beginning";
 import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import { api } from "../lib/axios";
+import dayjs from "dayjs";
+import clsx from "clsx";
 
 const weekDays = ["D", "S", "T", "Q", "Q", "S", "S"];
 const datesFromYearStart = generateDatesFromYearBeginnig();
 const minimumSummaryDatesSize = 18 * 5;
 const amountOfDaysToFill = minimumSummaryDatesSize - datesFromYearStart.length;
 
+type Summary = {
+  id: string;
+  date: string;
+  amount: number;
+  completed: number;
+};
+
 export function Home() {
   const { navigate } = useNavigation();
+
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<Summary[]>([]);
+
+  async function fetchData() {
+    try {
+      setLoading(true);
+
+      const response = await api.get("summary");
+      console.log(response.data);
+      setSummary(response.data);
+    } catch (error) {
+      Alert.alert("Ops", "Não foi possível carregar o sumário de hábitos");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <View className="flex-1 bg-background px-8 pt-16">
@@ -36,10 +69,17 @@ export function Home() {
       >
         <View className="flex-row flex-wrap">
           {datesFromYearStart.map((date) => {
+            const dayInSummary = summary.find((sum) => {
+              return dayjs(date).isSame(sum.date, "day");
+            });
+
             return (
               <HabitDay
                 key={date.toString()}
                 onPress={() => navigate("habit", { date: date.toISOString() })}
+                className={clsx("w-10 h-10 border-2 rounded-lg", {
+                  "bg-zinc-900 border-zinc-500": dayInSummary?.amount || 0 > 0,
+                })}
               />
             );
           })}
