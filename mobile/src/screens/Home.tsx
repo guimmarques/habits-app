@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/axios";
 import dayjs from "dayjs";
 import clsx from "clsx";
+import { Loading } from "../components/Loading";
 
 const weekDays = ["D", "S", "T", "Q", "Q", "S", "S"];
 const datesFromYearStart = generateDatesFromYearBeginnig();
@@ -31,7 +32,6 @@ export function Home() {
       setLoading(true);
 
       const response = await api.get("summary");
-      console.log(response.data);
       setSummary(response.data);
     } catch (error) {
       Alert.alert("Ops", "Não foi possível carregar o sumário de hábitos");
@@ -44,6 +44,10 @@ export function Home() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <View className="flex-1 bg-background px-8 pt-16">
@@ -69,7 +73,7 @@ export function Home() {
       >
         <View className="flex-row flex-wrap">
           {datesFromYearStart.map((date) => {
-            const dayInSummary = summary.find((sum) => {
+            const dayInSummary = summary?.find((sum) => {
               return dayjs(date).isSame(sum.date, "day");
             });
 
@@ -77,9 +81,9 @@ export function Home() {
               <HabitDay
                 key={date.toString()}
                 onPress={() => navigate("habit", { date: date.toISOString() })}
-                className={clsx("w-10 h-10 border-2 rounded-lg", {
-                  "bg-zinc-900 border-zinc-500": dayInSummary?.amount || 0 > 0,
-                })}
+                date={date}
+                amountOfHabits={dayInSummary?.amount}
+                amountCompleted={dayInSummary?.completed}
               />
             );
           })}
