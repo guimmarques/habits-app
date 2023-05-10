@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { Loading } from "../components/Loading";
 import { api } from "../lib/axios";
 import { generateProgressPercentage } from "../utils/generate-progress-percentage";
+import { HabitsEmpty } from "../components/HabitsEmpty";
+import clsx from "clsx";
 
 interface HabitParams {
   date: string;
@@ -32,6 +34,7 @@ export function Habit() {
   const parsedDate = dayjs(date);
   const dayOfWeek = parsedDate.format("dddd");
   const dayAndMonth = parsedDate.format("DD/MM");
+  const isDayInPast = parsedDate.endOf("day").isBefore(new Date());
 
   const habitsProgress =
     habitsInfo?.possibleHabits.length || 0 > 0
@@ -107,18 +110,30 @@ export function Habit() {
 
         <ProgressBar progress={habitsProgress} />
 
-        <View className="mt-6">
-          {habitsInfo?.possibleHabits.map((habit) => {
-            return (
-              <Checkbox
-                key={habit.id}
-                title={habit.title}
-                onPress={() => handleToggleHabit(habit.id)}
-                checked={habitsInfo.completedHabits.includes(habit.id)}
-              />
-            );
+        <View
+          className={clsx("mt-6", {
+            ["opacity-50"]: isDayInPast,
           })}
+        >
+          {(habitsInfo?.possibleHabits.length || 0) > 0 &&
+            habitsInfo?.possibleHabits.map((habit) => {
+              return (
+                <Checkbox
+                  key={habit.id}
+                  title={habit.title}
+                  onPress={() => handleToggleHabit(habit.id)}
+                  checked={habitsInfo.completedHabits.includes(habit.id)}
+                  disabled={isDayInPast}
+                />
+              );
+            })}
+          {(habitsInfo?.possibleHabits.length || 0) === 0 && <HabitsEmpty />}
         </View>
+        {isDayInPast && (
+          <Text className="text-white mt-10 text-center">
+            Você não pode editar um hábito de uma data passada.
+          </Text>
+        )}
       </ScrollView>
     </View>
   );
